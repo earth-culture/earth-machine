@@ -1,0 +1,2 @@
+USERNAME#string#email#120#not set#F
+VERIFICATION_KEY#string#not set#8#8#F

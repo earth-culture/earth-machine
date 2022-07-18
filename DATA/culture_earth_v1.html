@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Culture earth</title>
+
+    <style>
+      body {
+        color: #6c6c6c;
+        font-family: "Lucida Console", "Courier New", monospace;
+      }
+      .d-none {
+        display: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <p>welcome to culture earth</p>
+    <p>
+      Our canvas begins here. let's build a future we want <br />
+      via an open-source,transparent, incentivized war of the best ideas, bytes, and atoms <br />
+      we believe in the humans of planet earth
+    </p>
+
+    <p>
+      more info: <br />
+      cultures (video, text) <br />
+      culture earth (video, text) <br />
+      code (github)
+    </p>
+
+    <button id="joinScreen" onclick="submit('joinScreen')">Join</button>
+    
+    <button id="enterLoginScreen" onclick="loginScreen()">Enter</button>
+
+    <!-- <p>
+      You choose how much personal info is stored (can be none), just need to
+      confirm you are a human first...blink twice (kidding) <br />
+      enter email address to recieve code. nothing else will be sent here , you
+      can choose for address to be deleted after
+    </p> -->
+
+    <article>
+
+    <div id="signupScreen">
+        
+      <div id="emailScreen" class="d-none">
+        <p>
+          choose how much personal info is stored (can be none), just need to confirm you are a human
+          first...blink twice (kidding) <br />
+          enter email address to recieve code. nothing else will be sent here , you can choose for address to
+          be deleted after
+        </p>
+
+        <label for="emailaddress">Email address:</label> <br />
+        <input required type="text" name="emailaddress" id="emailaddress" />
+        <p id="emailaddress-error" class="d-none" style="color: red">required*</p>
+        <br />
+        <button onclick="submit('emailScreen')" type="submit">Submit</button>
+      </div>
+
+      <div id="codeScreen" class="d-none">
+        <label for="code">Code:</label> <br />
+        <input type="number" name="code" id="code" /> <br />
+        <p id="code-error" class="d-none" style="color: red">required*</p>
+
+        <button onclick="submit('codeScreen' , true)" type="submit">Submit</button>
+      </div>
+      <!-- remove previous ones -->
+
+      <div id="passwordScreen" class="d-none">
+        <label for="enterpassword">Enter password:</label> <br />
+        <input type="password" name="enterpassword" id="enterpassword" /> <br />
+
+        <label for="re-enterpassword">re-enter password:</label> <br />
+        <input type="password" name="re-enterpassword" id="re-enterpassword" />
+        <p id="password-error" class="d-none" style="color: red">required*</p>
+        <br />
+        <button onclick="submit('passwordScreen' , true)" type="submit">Submit</button>
+      </div>
+      <!-- Enter password: re-enter password should match  -->
+      <!-- remove previous ones -->
+
+
+      <div id="culturalIdScreen" class="d-none">
+        <label for="cultural-id">Enter a cultural id: Carl (must be unique)</label>
+        <br />
+        <input type="text" name="cultural-id" id="cultural-id" /> <br />
+        <p id="cultural-error" class="d-none" style="color: red">required*</p>
+
+        <button onclick="submit('culturalIdScreen' , true)" type="submit">Submit</button>
+      </div>
+      <!-- remove previous ones -->
+
+
+      <div id="emailActionScreen" class="d-none">
+        <p>
+          If you'd like to delete any record of your email address, you can use your culture id to enter the
+          culture <br />
+          however, if you choose to delete email address, there will be no way to enter culture if you forget
+          your culture id or password (!!!)
+        </p>
+
+        <button onclick="submit('emailActionScreen', true , true)">Delete Email address</button>
+        <button onclick="submit('emailActionScreen', true , true)">Save Email address</button>
+      </div>
+      <!-- remove all including itself  -->
+      <div id="privateKeyScreen" class="d-none">
+        <p>For additional secuirty, you may choose to require a private key (25 alphanumeric code) for each of your culture transactions <br>
+        you are the only person who will have this key (we delete it immediatly after generation) <br>
+        this decision can not be reversed. if private key is lost, there will be no way to transact your culture tokens assests (!!!)
+        </p>
+
+        <button onclick="submit('privateKeyScreen', true)" >Required private key</button>
+        <button onclick="loginScreen()">No private key</button>
+      </div>
+
+    </div>
+
+      <div id="loginScreen" class="d-none">
+        <p id="privatekey-txt" class="d-none">Here is your private key : <span> ceu7FguyuweuymOgHAS12 </span>
+        </p>
+
+        <label for="loginEmailaddress">Cultural Id or Email:</label> <br />
+        <input required type="text" name="loginEmailaddress" id="loginEmailaddress" />
+        <br />
+        <label for="loginPassword">Password</label> <br />
+        <input required type="password" name="loginPassword" id="loginPassword" />
+        <p id="login-error" class="d-none" style="color: red">required*</p>
+        <br />
+        <button onclick="login()" type="button">Submit</button>
+      </div>
+
+
+
+
+    </article>
+
+    <script>
+      // all screens flow
+      let screens = [
+        "joinScreen",
+        "emailScreen",
+        "codeScreen",
+        "passwordScreen",
+        "culturalIdScreen",
+        "emailActionScreen",
+        "privateKeyScreen",
+      ];
+
+      /* Login */
+
+      function loginScreen() {
+        // remove all screen
+        removeAllPreviousScreen(1, screens.length-1);
+
+        // show login
+        const loginScreenEl = document.getElementById("loginScreen");
+        loginScreenEl.classList.remove("d-none");
+      }
+
+      function hideLoginScreen() {
+        const loginScreenEl = document.getElementById("loginScreen");
+        loginScreenEl.classList.add("d-none");
+      }
+
+      function login() {
+        console.log('>>>>>>>>>>> login');
+        const loginScreenEl = document.getElementById("loginScreen");
+        
+        const emailEl = document.getElementById("loginEmailaddress");
+        const passEl = document.getElementById("loginPassword");
+        const errorEl = document.getElementById("login-error");
+
+        
+        if (!emailEl.value || !passEl.value) {
+          errorEl.classList.remove("d-none");
+          return false;
+        }
+        errorEl.classList.add("d-none");
+        loginScreenEl.classList.add("d-none");
+        return true;
+      }
+
+
+      /* signup steps */
+
+      function submit(submitted_screen, removePrevious, removeItSelf) {
+        // all input text shoudl be required
+        hideLoginScreen()
+
+        // based on screen perform action
+        const result = doSomeAction(submitted_screen);
+        if (!result) {
+          return;
+        }
+
+        // find current screen id
+        const currentScreenIndex = screens.findIndex((s) => s == submitted_screen);
+        // find next screen from current screen
+        const nextScreen = screens[currentScreenIndex + 1];
+
+        // if reach end of the screens then return
+        if (!nextScreen && !removeItSelf) return;
+
+        if (removePrevious) {
+          removeAllPreviousScreen(1, currentScreenIndex);
+        }
+
+        //  Show next screen
+        const el = document.getElementById(nextScreen);
+        if (el) {
+            el.classList.remove("d-none");
+        }
+      }
+
+      function doSomeAction(screen_name) {
+        switch (screen_name) {
+          case "joinScreen":
+            return true;
+            break;
+
+          case "emailScreen":
+            // call api etc
+            return onEmailSubmit();
+            break;
+          case "codeScreen":
+            return onCodeSubmit();
+            break;
+          case "passwordScreen":
+            return onPasswordSubmit();
+            break;
+          case "culturalIdScreen":
+            return onCultreSubmit();
+            break;
+          case "emailActionScreen":
+            return true;
+            break;
+          case "privateKeyScreen":
+          return onPrivateKeySubmit();
+          break;
+
+          default:
+            break;
+        }
+        return true;
+      }
+
+      function onEmailSubmit() {
+        // email required
+        const el = document.getElementById("emailaddress");
+
+        const errorEl = document.getElementById("emailaddress-error");
+        if (!el.value) {
+          errorEl.classList.remove("d-none");
+          return false;
+        }
+        errorEl.classList.add("d-none");
+        // calll api
+        return true;
+      }
+
+      function onCodeSubmit() {
+        const el = document.getElementById("code");
+        const errorEl = document.getElementById("code-error");
+
+        if (!el.value) {
+          errorEl.classList.remove("d-none");
+          return false;
+        }
+        errorEl.classList.add("d-none");
+        return true;
+      }
+
+      function onPasswordSubmit() {
+        const enterPasswordEl = document.getElementById("enterpassword");
+        const reEnterPasswordEl = document.getElementById("re-enterpassword");
+
+        const errorEl = document.getElementById("password-error");
+
+        if (!enterPasswordEl.value || !reEnterPasswordEl.value) {
+          errorEl.classList.remove("d-none");
+          return false;
+        }
+        
+
+        if (enterPasswordEl.value != reEnterPasswordEl.value) {
+            errorEl.classList.remove("d-none");
+            errorEl.innerHTML = 'password should be matched';
+            return false;
+        }
+
+        errorEl.classList.add("d-none");
+        errorEl.innerHTML = 'required';
+        return true;
+      }
+      function onCultreSubmit() {
+        const el = document.getElementById("cultural-id");
+        const errorEl = document.getElementById("cultural-error");
+
+        if (!el.value) {
+          errorEl.classList.remove("d-none");
+          return false;
+        }
+        return true;
+      }
+
+      function onPrivateKeySubmit() {
+        // get private key
+        const el = document.getElementById("privatekey-txt");
+
+        if (el) {
+          el.classList.remove("d-none");
+        }
+        loginScreen() // redirect to login
+        return true;
+        
+      }
+
+      function removeAllPreviousScreen(firstScreenIndex, currentScreenIndex) {
+        for (let i = currentScreenIndex; i >= firstScreenIndex; i--) {
+          var elem = document.getElementById(`${screens[i]}`);
+          elem.classList.add("d-none");
+        }
+      }
+
+
+
+
+
+    </script>
+  </body>
+</html>
