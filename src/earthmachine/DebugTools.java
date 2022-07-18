@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package earthmachinev2;
+package earthmachine;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpContext;

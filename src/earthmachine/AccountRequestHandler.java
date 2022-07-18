@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package earthmachinev2;
+package earthmachine;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
@@ -107,7 +107,7 @@ public class AccountRequestHandler implements HttpHandler {
         ApiRequestValidator apiRequestValidator = new ApiRequestValidator();
         ApiRequestValidationResult apiRequestValidationResult = apiRequestValidator.validateApiRequest(SupportedAPIs.VERIFY_EMAIL_IS_AVAILABLE, requestJSONObject);
         if (apiRequestValidationResult.passedApiValidation()) {
-            Connection databaseConnection = EarthMachineV2.databaseConnectionPool.checkOut();
+            Connection databaseConnection = EarthMachine.databaseConnectionPool.checkOut();
             try {
                 databaseConnection.setAutoCommit(true);
                 ToolKit.sendApiJSONResponse(database.isUsernameAvailable(requestJSONObject, databaseConnection), headers, exchange);
@@ -115,7 +115,7 @@ public class AccountRequestHandler implements HttpHandler {
                 e.printStackTrace(System.out);
                 ToolKit.sendApiJSONResponse(GenericErrorApiResponse.databaseError(), headers, exchange);
             } finally {
-                EarthMachineV2.databaseConnectionPool.checkIn(databaseConnection);
+                EarthMachine.databaseConnectionPool.checkIn(databaseConnection);
             }
         } else { //failed validation
             ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), headers, exchange);
@@ -126,7 +126,7 @@ public class AccountRequestHandler implements HttpHandler {
         ApiRequestValidator apiRequestValidator = new ApiRequestValidator();
         ApiRequestValidationResult apiRequestValidationResult = apiRequestValidator.validateApiRequest(SupportedAPIs.VERIFY_CULTURE_ID_IS_AVAILABLE, requestJSONObject);
         if (apiRequestValidationResult.passedApiValidation()) {
-            Connection databaseConnection = EarthMachineV2.databaseConnectionPool.checkOut();
+            Connection databaseConnection = EarthMachine.databaseConnectionPool.checkOut();
             try {
                 databaseConnection.setAutoCommit(true);
                 ToolKit.sendApiJSONResponse(database.isCultureIDAvailable(requestJSONObject, databaseConnection), headers, exchange);
@@ -134,7 +134,7 @@ public class AccountRequestHandler implements HttpHandler {
                 e.printStackTrace(System.out);
                 ToolKit.sendApiJSONResponse(GenericErrorApiResponse.databaseError(), headers, exchange);
             } finally {
-                EarthMachineV2.databaseConnectionPool.checkIn(databaseConnection);
+                EarthMachine.databaseConnectionPool.checkIn(databaseConnection);
             }
         } else { //failed validation
             ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), headers, exchange);
@@ -149,7 +149,7 @@ public class AccountRequestHandler implements HttpHandler {
         ApiRequestValidator apiRequestValidator = new ApiRequestValidator();
         ApiRequestValidationResult apiRequestValidationResult = apiRequestValidator.validateApiRequest(SupportedAPIs.VALIDATE_USERNAME_VERIFICATION_KEY, requestJSONObject);
         if (apiRequestValidationResult.passedApiValidation()) {
-            Connection databaseConnection = EarthMachineV2.databaseConnectionPool.checkOut();
+            Connection databaseConnection = EarthMachine.databaseConnectionPool.checkOut();
             try {
                 databaseConnection.setAutoCommit(true);
                 ToolKit.sendApiJSONResponse(database.validateUsernameVerificationKey(requestJSONObject, databaseConnection), headers, exchange);
@@ -160,7 +160,7 @@ public class AccountRequestHandler implements HttpHandler {
                 e.printStackTrace(System.out);
                 ToolKit.sendApiJSONResponse(GenericErrorApiResponse.generalError(), headers, exchange);
             } finally {
-                EarthMachineV2.databaseConnectionPool.checkIn(databaseConnection);
+                EarthMachine.databaseConnectionPool.checkIn(databaseConnection);
             }
         } else { //failed validation
             ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), headers, exchange);
@@ -171,7 +171,7 @@ public class AccountRequestHandler implements HttpHandler {
         ApiRequestValidator apiRequestValidator = new ApiRequestValidator();
         ApiRequestValidationResult apiRequestValidationResult = apiRequestValidator.validateApiRequest(SupportedAPIs.CREATE_ACCOUNT, requestJSONObject);
         if (apiRequestValidationResult.passedApiValidation()) {
-            Connection databaseConnection = EarthMachineV2.databaseConnectionPool.checkOut();
+            Connection databaseConnection = EarthMachine.databaseConnectionPool.checkOut();
             try {
                 databaseConnection.setAutoCommit(false); //all or nothing, prevents partial commits if error occurs 
                 ToolKit.sendApiJSONResponse(database.createAccount(requestJSONObject, databaseConnection), headers, exchange);
@@ -185,7 +185,7 @@ public class AccountRequestHandler implements HttpHandler {
                 e.printStackTrace(System.out);
                 ToolKit.sendApiJSONResponse(GenericErrorApiResponse.generalError(), headers, exchange);
             } finally {
-                EarthMachineV2.databaseConnectionPool.checkIn(databaseConnection);
+                EarthMachine.databaseConnectionPool.checkIn(databaseConnection);
             }
         } else { //failed validation 
             ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), headers, exchange);
@@ -196,7 +196,7 @@ public class AccountRequestHandler implements HttpHandler {
         ApiRequestValidator apiRequestValidator = new ApiRequestValidator();
         ApiRequestValidationResult apiRequestValidationResult = apiRequestValidator.validateApiRequest(SupportedAPIs.REGISTER_USERNAME_FOR_VERIFICATION, requestJSONObject);
         if(apiRequestValidationResult.passedApiValidation()){
-            Connection databaseConnection = EarthMachineV2.databaseConnectionPool.checkOut();
+            Connection databaseConnection = EarthMachine.databaseConnectionPool.checkOut();
             try{
                 databaseConnection.setAutoCommit(true);
                 ToolKit.sendApiJSONResponse(database.sendUsernameVerification(requestJSONObject, databaseConnection), headers, exchange);
@@ -207,7 +207,7 @@ public class AccountRequestHandler implements HttpHandler {
                 e.printStackTrace(System.out);
                 ToolKit.sendApiJSONResponse(GenericErrorApiResponse.generalError(), headers, exchange);
             }finally{
-                EarthMachineV2.databaseConnectionPool.checkIn(databaseConnection);
+                EarthMachine.databaseConnectionPool.checkIn(databaseConnection);
             }
         }else{ //failed validation 
             ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), headers, exchange);

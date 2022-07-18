@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
  */
-package earthmachinev2;
+package earthmachine;
 
 import java.io.File;
 
@@ -10,7 +10,7 @@ import java.io.File;
  *
  * @author Christopher Brett
  */
-public class EarthMachineV2 {
+public class EarthMachine {
 
     protected static ApiRequestValidator apiValidator;
     protected static DatabaseConnectionPool databaseConnectionPool;
