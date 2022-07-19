@@ -4,6 +4,7 @@
  */
 package earthmachine;
 
+import com.sun.net.httpserver.Headers;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
@@ -22,7 +23,7 @@ import org.json.simple.JSONObject;
 public class DatabaseControl {
 
     //GET
-    protected ApiResponseData isUsernameAvailable(JSONObject request, Connection databaseConnection) throws SQLException {
+    protected ApiResponseData isUsernameAvailable(JSONObject request, Headers headers, Connection databaseConnection) throws SQLException {
         JSONObject response = new JSONObject();
         final String sql = "select ID from logins where username = ?";
         final PreparedStatement statement = databaseConnection.prepareStatement(sql);
@@ -42,7 +43,7 @@ public class DatabaseControl {
         return new ApiResponseData(response, HttpConstants.STATUS_OK);
     }
 
-    protected ApiResponseData isCultureIDAvailable(JSONObject request, Connection databaseConnection) throws SQLException {
+    protected ApiResponseData isCultureIDAvailable(JSONObject request, Headers headers, Connection databaseConnection) throws SQLException {
         JSONObject response = new JSONObject();
         final String sql = "select ID from logins where cultureid = ?";
         final PreparedStatement statement = databaseConnection.prepareStatement(sql);
@@ -53,7 +54,7 @@ public class DatabaseControl {
     }
 
     //PUT
-    protected ApiResponseData validateUsernameVerificationKey(JSONObject request, Connection databaseConnection) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
+    protected ApiResponseData validateUsernameVerificationKey(JSONObject request, Headers headers, Connection databaseConnection) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
         JSONObject response = new JSONObject();
         final EncryptionManager encryptionManager = new EncryptionManager();
         final String sql = "select salt, hash, verified from emailverificationrequests where email = ?";
@@ -84,17 +85,50 @@ public class DatabaseControl {
         }
     }
 
+    protected ApiResponseData validateLogin(JSONObject request, Headers headers, Connection databaseConnection) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
+        JSONObject response = new JSONObject();
+        final EncryptionManager encryptionManager = new EncryptionManager();
+        final AuthenticationToken authenticationToken = new AuthenticationToken();
+        final String sql = "select passwordsalt, passwordhash from logins where " + (headers.containsKey("USERNAME") ? "username = ?" : "cultureid = ?");
+        final PreparedStatement statement = databaseConnection.prepareStatement(sql);
+        statement.setString(1, headers.containsKey("USERNAME") ? headers.getFirst("USERNAME") : headers.getFirst("CULTURE_ID"));
+        final ResultSet results = statement.executeQuery();
+        if (results.next()) {
+            if (encryptionManager.authenticate(headers.getFirst("PASSWORD"), results.getBytes("passwordhash"), results.getBytes("passwordsalt"))) {
+                String authToken = authenticationToken.generateToken();
+                final long tokenExpiry = authenticationToken.getNewTokenExpirationMilliseonds();
+                final String sql2 = "update logins set authtoken = ?, authtokenexpiry = ? where " + (headers.containsKey("USERNAME") ? "username = ?" : "cultureid = ?");
+                final PreparedStatement statement2 = databaseConnection.prepareStatement(sql2);
+                statement2.setString(1, authToken);
+                statement2.setLong(2, tokenExpiry);
+                statement2.setString(3, headers.containsKey("USERNAME") ? headers.getFirst("USERNAME") : headers.getFirst("CULTURE_ID"));
+                statement2.execute();
+                response.put("RESULT", "success");
+                Map<String, String> extraHeaders = new HashMap<>();
+                extraHeaders.put("AUTH_TOKEN", authToken);
+                extraHeaders.put("AUTH_TOKEN_EXPIRY", tokenExpiry + "");
+                return new ApiResponseData(response, HttpConstants.STATUS_OK, extraHeaders);
+            } else {
+                response.put("ERROR", "Password Incorrect");
+                return new ApiResponseData(response, HttpConstants.STATUS_UNAUTHORIZED);
+            }
+        } else {
+            response.put("ERROR", "User Not Found");
+            return new ApiResponseData(response, HttpConstants.STATUS_UNAUTHORIZED);
+        }
+    }
+
     //POST
-    protected ApiResponseData createAccount(JSONObject request, Connection databaseConnection) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
+    protected ApiResponseData createAccount(JSONObject request, Headers headers, Connection databaseConnection) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
         JSONObject response = new JSONObject();
         final EncryptionManager encryptionManager = new EncryptionManager();
         final AuthenticationToken authenticationToken = new AuthenticationToken();
         final String authToken = authenticationToken.generateToken();
         long authTokenExpiry = authenticationToken.getNewTokenExpirationMilliseonds();
-        if (((String) (isUsernameAvailable(request, databaseConnection).getResponse()).get("USERNAME_AVAILABLE")).equals("true")) {
-            switch ((String) (isUsernameAvailable(request, databaseConnection).getResponse()).get("VERIFICATION_STATUS")) {
+        if (((String) (isUsernameAvailable(request, headers, databaseConnection).getResponse()).get("USERNAME_AVAILABLE")).equals("true")) {
+            switch ((String) (isUsernameAvailable(request, headers, databaseConnection).getResponse()).get("VERIFICATION_STATUS")) {
                 case "VERIFIED" -> {
-                    if (((String) (isCultureIDAvailable(request, databaseConnection).getResponse()).get("CULTURE_ID_AVAILABLE")).equals("true")) {
+                    if (((String) (isCultureIDAvailable(request, headers, databaseConnection).getResponse()).get("CULTURE_ID_AVAILABLE")).equals("true")) {
                         byte[] salt = encryptionManager.generateSalt();
                         byte[] passwordBytes = encryptionManager.generateSaltedHash((String) request.get("PASSWORD"), salt);
                         final String sql = "insert into logins values (?,?,?,?,?,?,?)";
@@ -131,7 +165,7 @@ public class DatabaseControl {
         }
     }
 
-    protected ApiResponseData sendUsernameVerification(JSONObject request, Connection databaseConnection) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
+    protected ApiResponseData sendUsernameVerification(JSONObject request, Headers headers, Connection databaseConnection) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
         JSONObject response = new JSONObject();
         //generate a random verification code
         final EncryptionManager encryptionManager = new EncryptionManager();

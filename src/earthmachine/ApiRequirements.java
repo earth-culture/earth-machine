@@ -22,7 +22,7 @@ public class ApiRequirements {
         try ( BufferedReader br = new BufferedReader(new FileReader(requirementsFile))) {
             for (String line; (line = br.readLine()) != null;) {
                 String[] requirements = line.split("#");
-                parameterRequirements.add(new ParameterRequirement(requirements[0], requirements[1], requirements[2], (requirements[3].equals("not set") ? Long.MIN_VALUE : Long.parseLong(requirements[3])), (requirements[4].equals("not set") ? Long.MIN_VALUE : Long.parseLong(requirements[4])), requirements[5].equals("T")));
+                parameterRequirements.add(new ParameterRequirement(requirements[0], requirements[1], requirements[2], (requirements[3].equals("not set") ? Long.MIN_VALUE : Long.parseLong(requirements[3])), (requirements[4].equals("not set") ? Long.MIN_VALUE : Long.parseLong(requirements[4])), requirements[5].equals("T"), requirements[6]));
             }
         }catch(IOException e){
             e.printStackTrace(System.out);

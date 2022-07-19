@@ -22,14 +22,16 @@ public class ParameterRequirement {
     private final long parameterMaxSize; //dependent on datatype: bytes? characters? int size?
     private final long parameterMinSize; //dependent on datatype: bytes? characters? int size?
     private final boolean parameterOptional; //if identifier needs to be present in request 
-
-    protected ParameterRequirement(String identifier, String dataType, String format, long maxSize, long minSize, boolean optional) {
+    private final String parameterLocation; //in query? in header?
+    
+    protected ParameterRequirement(String identifier, String dataType, String format, long maxSize, long minSize, boolean optional, String location) {
         this.parameterIdentifier = identifier;
         this.parameterDataType = dataType;
         this.parameterFormat = format;
         this.parameterMaxSize = maxSize;
         this.parameterMinSize = minSize;
         this.parameterOptional = optional;
+        this.parameterLocation = location;
     }
 
     protected String getIdentifier() {
@@ -38,6 +40,10 @@ public class ParameterRequirement {
 
     protected boolean isOptional() {
         return this.parameterOptional;
+    }
+    
+    protected String getParameterLocation() {
+        return this.parameterLocation;
     }
 
     protected ParameterRequirementValidationResult validateParameter(Object parameter) {

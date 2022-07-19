@@ -4,6 +4,7 @@
  */
 package earthmachine;
 
+import com.sun.net.httpserver.Headers;
 import java.util.concurrent.ConcurrentHashMap;
 import org.json.simple.JSONObject;
 
@@ -12,29 +13,43 @@ import org.json.simple.JSONObject;
  * @author Christopher Brett
  */
 public class ApiRequestValidator {
-    
+
     private final ConcurrentHashMap<Integer, ApiRequirements> apiRequirementsCache = new ConcurrentHashMap<>();
-    
-    protected ApiRequestValidationResult validateApiRequest(int apiIdentifier, JSONObject json){
+
+    protected ApiRequestValidationResult validateApiRequest(int apiIdentifier, JSONObject json, Headers headers) {
         checkAndLoadApiRequirements(apiIdentifier);
         ApiRequirements requirements = apiRequirementsCache.get(apiIdentifier);
-        for(ParameterRequirement parameterRequirement : requirements.getParameterRequirements()){
-            if(json.containsKey(parameterRequirement.getIdentifier())){
-                ParameterRequirementValidationResult result = parameterRequirement.validateParameter(json.get(parameterRequirement.getIdentifier()));
-                if(result.getResult() != ParameterRequirement.PASSED_REQUIREMENTS){
-                    return new ApiRequestValidationResult(ApiRequestValidationResult.FAILED, result.getReason());
+        for (ParameterRequirement parameterRequirement : requirements.getParameterRequirements()) {
+            switch (parameterRequirement.getParameterLocation()) {
+                case "query" -> {
+                    if (json.containsKey(parameterRequirement.getIdentifier())) {
+                        ParameterRequirementValidationResult result = parameterRequirement.validateParameter(json.get(parameterRequirement.getIdentifier()));
+                        if (result.getResult() != ParameterRequirement.PASSED_REQUIREMENTS) {
+                            return new ApiRequestValidationResult(ApiRequestValidationResult.FAILED, result.getReason());
+                        }
+                    } else if (!parameterRequirement.isOptional()) {
+                        return new ApiRequestValidationResult(ApiRequestValidationResult.FAILED, "Missing Parameter In Query: " + parameterRequirement.getIdentifier());
+                    }
                 }
-            }else if(!parameterRequirement.isOptional()){
-                return new ApiRequestValidationResult(ApiRequestValidationResult.FAILED, "Missing Parameter: " + parameterRequirement.getIdentifier());
+                case "header" -> {
+                    if (headers.containsKey(parameterRequirement.getIdentifier())) {
+                        ParameterRequirementValidationResult result = parameterRequirement.validateParameter(headers.getFirst(parameterRequirement.getIdentifier()));
+                        if (result.getResult() != ParameterRequirement.PASSED_REQUIREMENTS) {
+                            return new ApiRequestValidationResult(ApiRequestValidationResult.FAILED, result.getReason());
+                        }
+                    } else if (!parameterRequirement.isOptional()) {
+                        return new ApiRequestValidationResult(ApiRequestValidationResult.FAILED, "Missing Parameter In Header: " + parameterRequirement.getIdentifier());
+                    }
+                }
             }
         }
         return new ApiRequestValidationResult(ApiRequestValidationResult.PASSED, ApiRequestValidationResult.NO_REASON);
     }
-    
-    private void checkAndLoadApiRequirements(int apiIdentifier){
-        if(apiRequirementsCache.get(apiIdentifier) == null){
+
+    private void checkAndLoadApiRequirements(int apiIdentifier) {
+        if (apiRequirementsCache.get(apiIdentifier) == null) {
             ApiRequirements newApiRequirements = new ApiRequirements(SupportedAPIs.getApiRequirementsFile(apiIdentifier));
             apiRequirementsCache.put(apiIdentifier, newApiRequirements);
         }//else it has already been loaded 
-    }   
+    }
 }
