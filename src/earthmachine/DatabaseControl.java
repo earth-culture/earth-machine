@@ -158,7 +158,7 @@ public class DatabaseControl {
                 response.put("ERROR", "Username Already Verified");
                 return new ApiResponseData(response, HttpConstants.STATUS_OK);
             } else { //update with new verification code 
-                final String sql2 = "update emailverification set salt = ?, hash = ? where ID = ?";
+                final String sql2 = "update emailverificationrequests set salt = ?, hash = ? where ID = ?";
                 final PreparedStatement statement2 = databaseConnection.prepareStatement(sql2);
                 statement2.setBytes(1, salt);
                 statement2.setBytes(2, verificationKeyHashBytes);

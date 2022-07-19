@@ -4,8 +4,6 @@
  */
 package earthmachine;
 
-import java.io.File;
-
 /**
  *
  * @author Christopher Brett
