@@ -1,1 +1,1 @@
-USERNAME#string#email#120#not set#F#query
+USERNAME#string#email#120#not set#F#body

@@ -1,2 +1,2 @@
-USERNAME#string#email#120#not set#F#query
-VERIFICATION_KEY#string#not set#8#8#F#query
+USERNAME#string#email#120#not set#F#body
+VERIFICATION_KEY#string#not set#8#8#F#body

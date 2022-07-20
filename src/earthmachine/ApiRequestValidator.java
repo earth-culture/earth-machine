@@ -16,19 +16,29 @@ public class ApiRequestValidator {
 
     private final ConcurrentHashMap<Integer, ApiRequirements> apiRequirementsCache = new ConcurrentHashMap<>();
 
-    protected ApiRequestValidationResult validateApiRequest(int apiIdentifier, JSONObject json, Headers headers) {
+    protected ApiRequestValidationResult validateApiRequest(int apiIdentifier, JSONObject queryJSON, JSONObject bodyJSON, Headers headers) {
         checkAndLoadApiRequirements(apiIdentifier);
         ApiRequirements requirements = apiRequirementsCache.get(apiIdentifier);
         for (ParameterRequirement parameterRequirement : requirements.getParameterRequirements()) {
             switch (parameterRequirement.getParameterLocation()) {
                 case "query" -> {
-                    if (json.containsKey(parameterRequirement.getIdentifier())) {
-                        ParameterRequirementValidationResult result = parameterRequirement.validateParameter(json.get(parameterRequirement.getIdentifier()));
+                    if (queryJSON.containsKey(parameterRequirement.getIdentifier())) {
+                        ParameterRequirementValidationResult result = parameterRequirement.validateParameter(queryJSON.get(parameterRequirement.getIdentifier()));
                         if (result.getResult() != ParameterRequirement.PASSED_REQUIREMENTS) {
                             return new ApiRequestValidationResult(ApiRequestValidationResult.FAILED, result.getReason());
                         }
                     } else if (!parameterRequirement.isOptional()) {
                         return new ApiRequestValidationResult(ApiRequestValidationResult.FAILED, "Missing Parameter In Query: " + parameterRequirement.getIdentifier());
+                    }
+                }
+                case "body" -> {
+                    if (bodyJSON.containsKey(parameterRequirement.getIdentifier())) {
+                        ParameterRequirementValidationResult result = parameterRequirement.validateParameter(bodyJSON.get(parameterRequirement.getIdentifier()));
+                        if (result.getResult() != ParameterRequirement.PASSED_REQUIREMENTS) {
+                            return new ApiRequestValidationResult(ApiRequestValidationResult.FAILED, result.getReason());
+                        }
+                    } else if (!parameterRequirement.isOptional()) {
+                        return new ApiRequestValidationResult(ApiRequestValidationResult.FAILED, "Missing Parameter In Body: " + parameterRequirement.getIdentifier());
                     }
                 }
                 case "header" -> {
