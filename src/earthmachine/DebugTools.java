@@ -24,9 +24,13 @@ public class DebugTools {
 
     protected static void printHttpExchangeRequestInfo(HttpExchange exchange) { //Great for debugging HTTP stuff
         System.out.println("********************************************");
-        System.out.println("-- headers --");
+        System.out.println("-- request headers --");
         Headers requestHeaders = exchange.getRequestHeaders();
         requestHeaders.entrySet().forEach(System.out::println);
+        
+        System.out.println("-- response headers --");
+        Headers responseHeaders = exchange.getResponseHeaders();
+        responseHeaders.entrySet().forEach(System.out::println);
 
         System.out.println("-- principle --");
         HttpPrincipal principal = exchange.getPrincipal();

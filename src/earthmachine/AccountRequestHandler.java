@@ -27,30 +27,31 @@ public class AccountRequestHandler implements HttpHandler {
     public void handle(HttpExchange exchange) {
         DebugTools.printHttpExchangeRequestInfo(exchange);
         try (exchange) {
-            final Headers headers = exchange.getResponseHeaders();
-            final JSONObject queryJSONObject = ToolKit.getJSONFromHttpExchangeQuery(exchange);//new JSONObject(ToolKit.queryToMap(exchange.getRequestURI().getQuery()));
+            final Headers requestHeaders = exchange.getRequestHeaders();
+            final Headers responseHeaders = exchange.getResponseHeaders();
+            final JSONObject queryJSONObject = ToolKit.getJSONFromHttpExchangeQuery(exchange);
             final JSONObject bodyJSONObject = ToolKit.getJSONFromHttpExchangeBody(exchange);
             final String requestMethod = (queryJSONObject.containsKey("method") && ServerEnvironmentVariables.IN_TEST_MODE) ? ((String) queryJSONObject.get("method")).toUpperCase() : exchange.getRequestMethod().toUpperCase();
             final String apiIdentifier = exchange.getRequestURI().getPath().split("/")[2];
             switch (requestMethod) {
                 case HttpConstants.METHOD_GET -> { //Read-Only Access to resources
-                    processGetRequest(apiIdentifier, headers, exchange, queryJSONObject, bodyJSONObject);
+                    processGetRequest(apiIdentifier, requestHeaders, exchange, queryJSONObject, bodyJSONObject);
                 }
                 case HttpConstants.METHOD_PUT -> { //Update a resource
-                    processPutRequest(apiIdentifier, headers, exchange, queryJSONObject, bodyJSONObject);
+                    processPutRequest(apiIdentifier, requestHeaders, exchange, queryJSONObject, bodyJSONObject);
                 }
                 case HttpConstants.METHOD_POST -> { //Create a new resource
-                    processPostRequest(apiIdentifier, headers, exchange, queryJSONObject, bodyJSONObject);
+                    processPostRequest(apiIdentifier, requestHeaders, exchange, queryJSONObject, bodyJSONObject);
                 }
                 case HttpConstants.METHOD_DELETE -> { //Remove a resource
-                    processDeleteRequest(apiIdentifier, headers, exchange, queryJSONObject, bodyJSONObject);
+                    processDeleteRequest(apiIdentifier, requestHeaders, exchange, queryJSONObject, bodyJSONObject);
                 }
                 case HttpConstants.METHOD_OPTIONS -> { //Return what methods are supported
-                    headers.set(HttpConstants.HEADER_ALLOW, HttpConstants.ALLOWED_METHODS);
+                    responseHeaders.set(HttpConstants.HEADER_ALLOW, HttpConstants.ALLOWED_METHODS);
                     exchange.sendResponseHeaders(HttpConstants.STATUS_OK, HttpConstants.NO_RESPONSE_LENGTH);
                 }
                 default -> {
-                    headers.set(HttpConstants.HEADER_ALLOW, HttpConstants.ALLOWED_METHODS);
+                    responseHeaders.set(HttpConstants.HEADER_ALLOW, HttpConstants.ALLOWED_METHODS);
                     exchange.sendResponseHeaders(HttpConstants.STATUS_METHOD_NOT_ALLOWED, HttpConstants.NO_RESPONSE_LENGTH);
                 }
             }
@@ -59,112 +60,112 @@ public class AccountRequestHandler implements HttpHandler {
         }
     }
 
-    private static void processGetRequest(String apiIdentifier, Headers headers, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
+    private static void processGetRequest(String apiIdentifier, Headers requestHeaders, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
         switch (apiIdentifier) {
             case "VerifyUsernameIsAvailable" -> {
-                verifyUsernameIsAvailable(headers, exchange, queryJSONObject, bodyJSONObject);
+                verifyUsernameIsAvailable(requestHeaders, exchange, queryJSONObject, bodyJSONObject);
             }
             case "VerifyCultureIDIsAvailable" -> {
-                verifyCultureIDIsAvailable(headers, exchange, queryJSONObject, bodyJSONObject);
+                verifyCultureIDIsAvailable(requestHeaders, exchange, queryJSONObject, bodyJSONObject);
             }
             case "ValidateLogin" -> {
-                validateLogin(headers, exchange, queryJSONObject, bodyJSONObject);
+                validateLogin(requestHeaders, exchange, queryJSONObject, bodyJSONObject);
             }
             default -> {
-                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.methodNotFoundError(), headers, exchange);
+                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.methodNotFoundError(), exchange);
             }
         }
     }
 
-    private static void processPutRequest(String apiIdentifier, Headers headers, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
+    private static void processPutRequest(String apiIdentifier, Headers requestHeaders, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
         switch (apiIdentifier) {
             case "ValidateUsernameVerificationKey" -> {
-                validateUsernameVerificationKey(headers, exchange, queryJSONObject, bodyJSONObject);
+                validateUsernameVerificationKey(requestHeaders, exchange, queryJSONObject, bodyJSONObject);
             }
             default -> {
-                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.methodNotFoundError(), headers, exchange);
+                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.methodNotFoundError(), exchange);
             }
         }
     }
 
-    private static void processPostRequest(String apiIdentifier, Headers headers, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
+    private static void processPostRequest(String apiIdentifier, Headers requestHeaders, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
         switch (apiIdentifier) {
             case "CreateAccount" -> {
-                createAccount(headers, exchange, queryJSONObject, bodyJSONObject);
+                createAccount(requestHeaders, exchange, queryJSONObject, bodyJSONObject);
             }
             case "RegisterUsernameForVerification" -> {
-                registerUsernameForVerification(headers, exchange, queryJSONObject, bodyJSONObject);
+                registerUsernameForVerification(requestHeaders, exchange, queryJSONObject, bodyJSONObject);
             }
             default -> {
-                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.methodNotFoundError(), headers, exchange);
+                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.methodNotFoundError(), exchange);
             }
         }
     }
 
-    private static void processDeleteRequest(String apiIdentifier, Headers headers, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
+    private static void processDeleteRequest(String apiIdentifier, Headers requestHeaders, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
         switch (apiIdentifier) {
             default -> {
-                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.methodNotFoundError(), headers, exchange);
+                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.methodNotFoundError(), exchange);
             }
         }
     }
 
-    private static void verifyUsernameIsAvailable(Headers headers, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
+    private static void verifyUsernameIsAvailable(Headers requestHeaders, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
         ApiRequestValidator apiRequestValidator = new ApiRequestValidator();
-        ApiRequestValidationResult apiRequestValidationResult = apiRequestValidator.validateApiRequest(SupportedAPIs.VERIFY_EMAIL_IS_AVAILABLE, queryJSONObject, bodyJSONObject, headers);
+        ApiRequestValidationResult apiRequestValidationResult = apiRequestValidator.validateApiRequest(SupportedAPIs.VERIFY_EMAIL_IS_AVAILABLE, queryJSONObject, bodyJSONObject, requestHeaders);
         if (apiRequestValidationResult.passedApiValidation()) {
             JSONObject requestJSONObject = ToolKit.mergeJSONObjects(queryJSONObject, bodyJSONObject);
             Connection databaseConnection = EarthMachine.databaseConnectionPool.checkOut();
             try {
                 databaseConnection.setAutoCommit(true);
-                ToolKit.sendApiJSONResponse(database.isUsernameAvailable(requestJSONObject, headers, databaseConnection), headers, exchange);
+                ToolKit.sendApiJSONResponse(database.isUsernameAvailable(requestJSONObject, requestHeaders, databaseConnection), exchange);
             } catch (SQLException e) {
                 e.printStackTrace(System.out);
-                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.databaseError(), headers, exchange);
+                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.databaseError(), exchange);
             } finally {
                 EarthMachine.databaseConnectionPool.checkIn(databaseConnection);
             }
         } else { //failed validation
-            ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), headers, exchange);
+            ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), exchange);
         }
     }
 
-    private static void verifyCultureIDIsAvailable(Headers headers, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
+    private static void verifyCultureIDIsAvailable(Headers requestHeaders, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
         ApiRequestValidator apiRequestValidator = new ApiRequestValidator();
-        ApiRequestValidationResult apiRequestValidationResult = apiRequestValidator.validateApiRequest(SupportedAPIs.VERIFY_CULTURE_ID_IS_AVAILABLE, queryJSONObject, bodyJSONObject, headers);
+        ApiRequestValidationResult apiRequestValidationResult = apiRequestValidator.validateApiRequest(SupportedAPIs.VERIFY_CULTURE_ID_IS_AVAILABLE, queryJSONObject, bodyJSONObject, requestHeaders);
         if (apiRequestValidationResult.passedApiValidation()) {
             JSONObject requestJSONObject = ToolKit.mergeJSONObjects(queryJSONObject, bodyJSONObject);
             Connection databaseConnection = EarthMachine.databaseConnectionPool.checkOut();
             try {
                 databaseConnection.setAutoCommit(true);
-                ToolKit.sendApiJSONResponse(database.isCultureIDAvailable(requestJSONObject, headers, databaseConnection), headers, exchange);
+                ToolKit.sendApiJSONResponse(database.isCultureIDAvailable(requestJSONObject, requestHeaders, databaseConnection), exchange);
             } catch (SQLException e) {
                 e.printStackTrace(System.out);
-                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.databaseError(), headers, exchange);
+                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.databaseError(), exchange);
             } finally {
                 EarthMachine.databaseConnectionPool.checkIn(databaseConnection);
             }
         } else { //failed validation
-            ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), headers, exchange);
+            ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), exchange);
         }
     }
 
-    private static void validateLogin(Headers headers, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
+    private static void validateLogin(Headers requestHeaders, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
         ApiRequestValidator apiRequestValidator = new ApiRequestValidator();
-        ApiRequestValidationResult apiRequestValidationResult = apiRequestValidator.validateApiRequest(SupportedAPIs.VALIDATE_LOGIN, queryJSONObject, bodyJSONObject, headers);
+        ApiRequestValidationResult apiRequestValidationResult = apiRequestValidator.validateApiRequest(SupportedAPIs.VALIDATE_LOGIN, queryJSONObject, bodyJSONObject, requestHeaders);
         if (apiRequestValidationResult.passedApiValidation()) {
             JSONObject requestJSONObject = ToolKit.mergeJSONObjects(queryJSONObject, bodyJSONObject);
             if (requestJSONObject.containsKey("USERNAME") ^ requestJSONObject.containsKey("CULTURE_ID")) { //XOR
                 Connection databaseConnection = EarthMachine.databaseConnectionPool.checkOut();
                 try {
                     databaseConnection.setAutoCommit(true);
-                    ToolKit.sendApiJSONResponse(database.validateLogin(requestJSONObject, headers, databaseConnection), headers, exchange);
+                    ToolKit.sendApiJSONResponse(database.validateLogin(requestJSONObject, requestHeaders, databaseConnection), exchange);
                 } catch (SQLException e) {
                     e.printStackTrace(System.out);
-                    ToolKit.sendApiJSONResponse(GenericErrorApiResponse.databaseError(), headers, exchange);
+                    ToolKit.sendApiJSONResponse(GenericErrorApiResponse.databaseError(), exchange);
                 } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
                     e.printStackTrace(System.out);
-                    ToolKit.sendApiJSONResponse(GenericErrorApiResponse.generalError(), headers, exchange);
+                    ToolKit.sendApiJSONResponse(GenericErrorApiResponse.generalError(), exchange);
                 } finally {
                     EarthMachine.databaseConnectionPool.checkIn(databaseConnection);
                 }
@@ -173,42 +174,42 @@ public class AccountRequestHandler implements HttpHandler {
                 reasonJSON.put("ERROR", "Must Include One Of The Following: USERNAME Or CULTURE_ID");
             }
         } else {
-            ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), headers, exchange);
+            ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), exchange);
         }
     }
 
-    private static void validateUsernameVerificationKey(Headers headers, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
+    private static void validateUsernameVerificationKey(Headers requestHeaders, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
         ApiRequestValidator apiRequestValidator = new ApiRequestValidator();
-        ApiRequestValidationResult apiRequestValidationResult = apiRequestValidator.validateApiRequest(SupportedAPIs.VALIDATE_USERNAME_VERIFICATION_KEY, queryJSONObject, bodyJSONObject, headers);
+        ApiRequestValidationResult apiRequestValidationResult = apiRequestValidator.validateApiRequest(SupportedAPIs.VALIDATE_USERNAME_VERIFICATION_KEY, queryJSONObject, bodyJSONObject, requestHeaders);
         if (apiRequestValidationResult.passedApiValidation()) {
             JSONObject requestJSONObject = ToolKit.mergeJSONObjects(queryJSONObject, bodyJSONObject);
             Connection databaseConnection = EarthMachine.databaseConnectionPool.checkOut();
             try {
                 databaseConnection.setAutoCommit(true);
-                ToolKit.sendApiJSONResponse(database.validateUsernameVerificationKey(requestJSONObject, headers, databaseConnection), headers, exchange);
+                ToolKit.sendApiJSONResponse(database.validateUsernameVerificationKey(requestJSONObject, requestHeaders, databaseConnection), exchange);
             } catch (SQLException e) {
                 e.printStackTrace(System.out);
-                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.databaseError(), headers, exchange);
+                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.databaseError(), exchange);
             } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
                 e.printStackTrace(System.out);
-                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.generalError(), headers, exchange);
+                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.generalError(), exchange);
             } finally {
                 EarthMachine.databaseConnectionPool.checkIn(databaseConnection);
             }
         } else { //failed validation
-            ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), headers, exchange);
+            ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), exchange);
         }
     }
 
-    private static void createAccount(Headers headers, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
+    private static void createAccount(Headers requestHeaders, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
         ApiRequestValidator apiRequestValidator = new ApiRequestValidator();
-        ApiRequestValidationResult apiRequestValidationResult = apiRequestValidator.validateApiRequest(SupportedAPIs.CREATE_ACCOUNT, queryJSONObject, bodyJSONObject, headers);
+        ApiRequestValidationResult apiRequestValidationResult = apiRequestValidator.validateApiRequest(SupportedAPIs.CREATE_ACCOUNT, queryJSONObject, bodyJSONObject, requestHeaders);
         if (apiRequestValidationResult.passedApiValidation()) {
             JSONObject requestJSONObject = ToolKit.mergeJSONObjects(queryJSONObject, bodyJSONObject);
             Connection databaseConnection = EarthMachine.databaseConnectionPool.checkOut();
             try {
                 databaseConnection.setAutoCommit(false); //all or nothing, prevents partial commits if error occurs 
-                ToolKit.sendApiJSONResponse(database.createAccount(requestJSONObject, headers, databaseConnection), headers, exchange);
+                ToolKit.sendApiJSONResponse(database.createAccount(requestJSONObject, requestHeaders, databaseConnection), exchange);
                 databaseConnection.commit();
             } catch (SQLException e) {
                 e.printStackTrace(System.out);
@@ -217,38 +218,38 @@ public class AccountRequestHandler implements HttpHandler {
                 } //undo database entries 
                 catch (SQLException ex) {
                 } //do nothing
-                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.databaseError(), headers, exchange);
+                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.databaseError(), exchange);
             } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
                 e.printStackTrace(System.out);
-                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.generalError(), headers, exchange);
+                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.generalError(), exchange);
             } finally {
                 EarthMachine.databaseConnectionPool.checkIn(databaseConnection);
             }
         } else { //failed validation 
-            ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), headers, exchange);
+            ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), exchange);
         }
     }
 
-    private static void registerUsernameForVerification(Headers headers, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
+    private static void registerUsernameForVerification(Headers requestHeaders, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
         ApiRequestValidator apiRequestValidator = new ApiRequestValidator();
-        ApiRequestValidationResult apiRequestValidationResult = apiRequestValidator.validateApiRequest(SupportedAPIs.REGISTER_USERNAME_FOR_VERIFICATION, queryJSONObject, bodyJSONObject, headers);
+        ApiRequestValidationResult apiRequestValidationResult = apiRequestValidator.validateApiRequest(SupportedAPIs.REGISTER_USERNAME_FOR_VERIFICATION, queryJSONObject, bodyJSONObject, requestHeaders);
         if (apiRequestValidationResult.passedApiValidation()) {
             JSONObject requestJSONObject = ToolKit.mergeJSONObjects(queryJSONObject, bodyJSONObject);
             Connection databaseConnection = EarthMachine.databaseConnectionPool.checkOut();
             try {
                 databaseConnection.setAutoCommit(true);
-                ToolKit.sendApiJSONResponse(database.sendUsernameVerification(requestJSONObject, headers, databaseConnection), headers, exchange);
+                ToolKit.sendApiJSONResponse(database.sendUsernameVerification(requestJSONObject, requestHeaders, databaseConnection), exchange);
             } catch (SQLException e) {
                 e.printStackTrace(System.out);
-                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.databaseError(), headers, exchange);
+                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.databaseError(), exchange);
             } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
                 e.printStackTrace(System.out);
-                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.generalError(), headers, exchange);
+                ToolKit.sendApiJSONResponse(GenericErrorApiResponse.generalError(), exchange);
             } finally {
                 EarthMachine.databaseConnectionPool.checkIn(databaseConnection);
             }
         } else { //failed validation 
-            ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), headers, exchange);
+            ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), exchange);
         }
     }
 }

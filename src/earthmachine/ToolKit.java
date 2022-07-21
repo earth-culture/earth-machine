@@ -12,8 +12,6 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -25,7 +23,10 @@ import org.json.simple.parser.ParseException;
 public class ToolKit {
 
     protected static JSONObject getJSONFromHttpExchangeQuery(HttpExchange exchange) {
-        Map<String, String> jsonMap = new HashMap<>();
+       if(exchange.getRequestURI().getQuery() == null){
+           return new JSONObject();
+       }else{
+           Map<String, String> jsonMap = new HashMap<>();
         for (String param : exchange.getRequestURI().getQuery().split("&")) {
             String[] entry = param.split("=");
             if (entry.length > 1) {
@@ -35,6 +36,7 @@ public class ToolKit {
             }
         }
         return new JSONObject(jsonMap);
+       }   
     }
 
     protected static JSONObject getJSONFromHttpExchangeBody(HttpExchange exchange) throws ParseException, UnsupportedEncodingException, IOException {
@@ -55,12 +57,13 @@ public class ToolKit {
         return json1;
     }
 
-    protected static void sendApiJSONResponse(ApiResponseData response, Headers headers, HttpExchange exchange) throws IOException {
+    protected static void sendApiJSONResponse(ApiResponseData response, HttpExchange exchange) throws IOException {
         String responseBody = response.getResponse().toJSONString();
-        headers.set(HttpConstants.HEADER_CONTENT_TYPE, String.format(HttpConstants.FORMAT_JSON, HttpConstants.CHARSET_UTF8));
+        Headers responseHeaders = exchange.getResponseHeaders();
+        responseHeaders.set(HttpConstants.HEADER_CONTENT_TYPE, String.format(HttpConstants.FORMAT_JSON, HttpConstants.CHARSET_UTF8));
         if (response.getExtraHeaders() != null) {
             for (Map.Entry<String, String> entry : response.getExtraHeaders().entrySet()) {
-                headers.set(entry.getKey(), entry.getValue());
+                responseHeaders.set(entry.getKey(), entry.getValue());
             }
         }
         final byte[] rawResponseBody = responseBody.getBytes(HttpConstants.CHARSET_UTF8);
