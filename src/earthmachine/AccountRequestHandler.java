@@ -68,9 +68,6 @@ public class AccountRequestHandler implements HttpHandler {
             case "VerifyCultureIDIsAvailable" -> {
                 verifyCultureIDIsAvailable(requestHeaders, exchange, queryJSONObject, bodyJSONObject);
             }
-            case "ValidateLogin" -> {
-                validateLogin(requestHeaders, exchange, queryJSONObject, bodyJSONObject);
-            }
             default -> {
                 ToolKit.sendApiJSONResponse(GenericErrorApiResponse.methodNotFoundError(), exchange);
             }
@@ -95,6 +92,9 @@ public class AccountRequestHandler implements HttpHandler {
             }
             case "RegisterUsernameForVerification" -> {
                 registerUsernameForVerification(requestHeaders, exchange, queryJSONObject, bodyJSONObject);
+            }
+            case "ValidateLogin" -> {
+                validateLogin(requestHeaders, exchange, queryJSONObject, bodyJSONObject);
             }
             default -> {
                 ToolKit.sendApiJSONResponse(GenericErrorApiResponse.methodNotFoundError(), exchange);
@@ -146,34 +146,6 @@ public class AccountRequestHandler implements HttpHandler {
                 EarthMachine.databaseConnectionPool.checkIn(databaseConnection);
             }
         } else { //failed validation
-            ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), exchange);
-        }
-    }
-
-    private static void validateLogin(Headers requestHeaders, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
-        ApiRequestValidator apiRequestValidator = new ApiRequestValidator();
-        ApiRequestValidationResult apiRequestValidationResult = apiRequestValidator.validateApiRequest(SupportedAPIs.VALIDATE_LOGIN, queryJSONObject, bodyJSONObject, requestHeaders);
-        if (apiRequestValidationResult.passedApiValidation()) {
-            JSONObject requestJSONObject = ToolKit.mergeJSONObjects(queryJSONObject, bodyJSONObject);
-            if (requestJSONObject.containsKey("USERNAME") ^ requestJSONObject.containsKey("CULTURE_ID")) { //XOR
-                Connection databaseConnection = EarthMachine.databaseConnectionPool.checkOut();
-                try {
-                    databaseConnection.setAutoCommit(true);
-                    ToolKit.sendApiJSONResponse(database.validateLogin(requestJSONObject, requestHeaders, databaseConnection), exchange);
-                } catch (SQLException e) {
-                    e.printStackTrace(System.out);
-                    ToolKit.sendApiJSONResponse(GenericErrorApiResponse.databaseError(), exchange);
-                } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
-                    e.printStackTrace(System.out);
-                    ToolKit.sendApiJSONResponse(GenericErrorApiResponse.generalError(), exchange);
-                } finally {
-                    EarthMachine.databaseConnectionPool.checkIn(databaseConnection);
-                }
-            } else { //didnt include at least one of USERNAME or CULTURE_ID
-                JSONObject reasonJSON = new JSONObject();
-                reasonJSON.put("ERROR", "Must Include One Of The Following: USERNAME Or CULTURE_ID");
-            }
-        } else {
             ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), exchange);
         }
     }
@@ -249,6 +221,34 @@ public class AccountRequestHandler implements HttpHandler {
                 EarthMachine.databaseConnectionPool.checkIn(databaseConnection);
             }
         } else { //failed validation 
+            ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), exchange);
+        }
+    }
+
+    private static void validateLogin(Headers requestHeaders, HttpExchange exchange, JSONObject queryJSONObject, JSONObject bodyJSONObject) throws IOException {
+        ApiRequestValidator apiRequestValidator = new ApiRequestValidator();
+        ApiRequestValidationResult apiRequestValidationResult = apiRequestValidator.validateApiRequest(SupportedAPIs.VALIDATE_LOGIN, queryJSONObject, bodyJSONObject, requestHeaders);
+        if (apiRequestValidationResult.passedApiValidation()) {
+            JSONObject requestJSONObject = ToolKit.mergeJSONObjects(queryJSONObject, bodyJSONObject);
+            if (requestJSONObject.containsKey("USERNAME") ^ requestJSONObject.containsKey("CULTURE_ID")) { //XOR
+                Connection databaseConnection = EarthMachine.databaseConnectionPool.checkOut();
+                try {
+                    databaseConnection.setAutoCommit(true);
+                    ToolKit.sendApiJSONResponse(database.validateLogin(requestJSONObject, requestHeaders, databaseConnection), exchange);
+                } catch (SQLException e) {
+                    e.printStackTrace(System.out);
+                    ToolKit.sendApiJSONResponse(GenericErrorApiResponse.databaseError(), exchange);
+                } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
+                    e.printStackTrace(System.out);
+                    ToolKit.sendApiJSONResponse(GenericErrorApiResponse.generalError(), exchange);
+                } finally {
+                    EarthMachine.databaseConnectionPool.checkIn(databaseConnection);
+                }
+            } else { //didnt include at least one of USERNAME or CULTURE_ID
+                JSONObject reasonJSON = new JSONObject();
+                reasonJSON.put("ERROR", "Must Include One Of The Following: USERNAME Or CULTURE_ID");
+            }
+        } else {
             ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), exchange);
         }
     }
