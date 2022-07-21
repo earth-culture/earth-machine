@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 import org.json.simple.JSONObject;
@@ -132,7 +133,7 @@ public class DatabaseControl {
                         byte[] salt = encryptionManager.generateSalt();
                         byte[] passwordBytes = encryptionManager.generateSaltedHash((String) request.get("PASSWORD"), salt);
                         final String sql = "insert into logins values (?,?,?,?,?,?,?)";
-                        final PreparedStatement statement = databaseConnection.prepareStatement(sql);
+                        final PreparedStatement statement = databaseConnection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
                         statement.setNull(1, 0);
                         statement.setString(2, (String) request.get("USERNAME"));
                         statement.setString(3, (String) request.get("CULTURE_ID"));
@@ -141,6 +142,16 @@ public class DatabaseControl {
                         statement.setString(6, authToken);
                         statement.setLong(7, authTokenExpiry);
                         statement.execute();
+                        ResultSet getLoginID = statement.getGeneratedKeys();
+                        int loginID  = -1;
+                        if(getLoginID.next()){
+                            loginID = getLoginID.getInt(1);
+                        }
+                        final String sql2 = "insert into accounts values (?,?)";
+                        final PreparedStatement statement2 = databaseConnection.prepareStatement(sql2);
+                        statement2.setNull(1, 0);
+                        statement2.setInt(2, loginID);
+                        statement2.execute();
                         response.put("RESULT", "success");
                         Map<String, String> extraHeaders = new HashMap<>();
                         extraHeaders.put("AUTH_TOKEN", authToken);
