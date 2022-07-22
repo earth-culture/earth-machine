@@ -247,6 +247,7 @@ public class AccountRequestHandler implements HttpHandler {
             } else { //didnt include at least one of USERNAME or CULTURE_ID
                 JSONObject reasonJSON = new JSONObject();
                 reasonJSON.put("ERROR", "Must Include One Of The Following: USERNAME Or CULTURE_ID");
+                ToolKit.sendApiJSONResponse(new ApiResponseData(reasonJSON, HttpConstants.STATUS_BAD_REQUEST), exchange);
             }
         } else {
             ToolKit.sendApiJSONResponse(new ApiResponseData(apiRequestValidationResult.getReason(), HttpConstants.STATUS_BAD_REQUEST), exchange);
