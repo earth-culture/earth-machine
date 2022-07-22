@@ -36,6 +36,7 @@ public class HttpConstants {
     //headers 
     protected static final String HEADER_ALLOW = "Allow";
     protected static final String HEADER_CONTENT_TYPE = "Content-Type";
+    protected static final String HEADER_ALLOW_ACCESS_CONTROL_ORIGIN = "Access-Control-Allow-Origin";
     
     //character sets 
     protected static final Charset CHARSET_UTF8 = StandardCharsets.UTF_8;

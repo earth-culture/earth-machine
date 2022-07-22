@@ -60,6 +60,7 @@ public class ToolKit {
     protected static void sendApiJSONResponse(ApiResponseData response, HttpExchange exchange) throws IOException {
         String responseBody = response.getResponse().toJSONString();
         Headers responseHeaders = exchange.getResponseHeaders();
+        responseHeaders.set(HttpConstants.HEADER_ALLOW_ACCESS_CONTROL_ORIGIN, "*");
         responseHeaders.set(HttpConstants.HEADER_CONTENT_TYPE, String.format(HttpConstants.FORMAT_JSON, HttpConstants.CHARSET_UTF8));
         if (response.getExtraHeaders() != null) {
             for (Map.Entry<String, String> entry : response.getExtraHeaders().entrySet()) {
