@@ -48,10 +48,12 @@ public class AccountRequestHandler implements HttpHandler {
                 }
                 case HttpConstants.METHOD_OPTIONS -> { //Return what methods are supported
                     responseHeaders.set(HttpConstants.HEADER_ALLOW, HttpConstants.ALLOWED_METHODS);
+                    responseHeaders.set(HttpConstants.HEADER_ALLOW_ACCESS_CONTROL_ORIGIN, "*");
                     exchange.sendResponseHeaders(HttpConstants.STATUS_OK, HttpConstants.NO_RESPONSE_LENGTH);
                 }
                 default -> {
                     responseHeaders.set(HttpConstants.HEADER_ALLOW, HttpConstants.ALLOWED_METHODS);
+                    responseHeaders.set(HttpConstants.HEADER_ALLOW_ACCESS_CONTROL_ORIGIN, "*");
                     exchange.sendResponseHeaders(HttpConstants.STATUS_METHOD_NOT_ALLOWED, HttpConstants.NO_RESPONSE_LENGTH);
                 }
             }
