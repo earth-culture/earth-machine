@@ -71,4 +71,20 @@ public class ToolKit {
         exchange.sendResponseHeaders(response.getHttpStatus(), rawResponseBody.length);
         exchange.getResponseBody().write(rawResponseBody);
     }
+    
+    protected static void sendMethodOptionsResponse(HttpExchange exchange) throws IOException{
+        final Headers responseHeaders = exchange.getResponseHeaders();
+        responseHeaders.set(HttpConstants.HEADER_ALLOW_ACCESS_CONTROL_ORIGIN, "*");
+        responseHeaders.add(HttpConstants.HEADER_ACCESS_CONTROL_ALLOW_METHODS, HttpConstants.ALLOWED_METHODS);
+        responseHeaders.add(HttpConstants.HEADER_ACCESS_CONTROL_ALLOW_HEADERS, "Content-Type");
+        exchange.sendResponseHeaders(HttpConstants.STATUS_NO_CONTENT, HttpConstants.NO_RESPONSE_LENGTH);
+    }
+    
+    protected static void sendDefaultResponse(HttpExchange exchange) throws IOException {
+        final Headers responseHeaders = exchange.getResponseHeaders();
+        responseHeaders.set(HttpConstants.HEADER_ALLOW_ACCESS_CONTROL_ORIGIN, "*");
+        responseHeaders.add(HttpConstants.HEADER_ACCESS_CONTROL_ALLOW_METHODS, HttpConstants.ALLOWED_METHODS);
+        responseHeaders.add(HttpConstants.HEADER_ACCESS_CONTROL_ALLOW_HEADERS, "Content-Type");
+        exchange.sendResponseHeaders(HttpConstants.STATUS_METHOD_NOT_ALLOWED, HttpConstants.NO_RESPONSE_LENGTH);
+    }
 }

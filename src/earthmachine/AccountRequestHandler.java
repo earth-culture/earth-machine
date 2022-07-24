@@ -28,7 +28,6 @@ public class AccountRequestHandler implements HttpHandler {
         DebugTools.printHttpExchangeRequestInfo(exchange);
         try (exchange) {
             final Headers requestHeaders = exchange.getRequestHeaders();
-            final Headers responseHeaders = exchange.getResponseHeaders();
             final JSONObject queryJSONObject = ToolKit.getJSONFromHttpExchangeQuery(exchange);
             final JSONObject bodyJSONObject = ToolKit.getJSONFromHttpExchangeBody(exchange);
             final String requestMethod = (queryJSONObject.containsKey("method") && ServerEnvironmentVariables.IN_TEST_MODE) ? ((String) queryJSONObject.get("method")).toUpperCase() : exchange.getRequestMethod().toUpperCase();
@@ -47,14 +46,10 @@ public class AccountRequestHandler implements HttpHandler {
                     processDeleteRequest(apiIdentifier, requestHeaders, exchange, queryJSONObject, bodyJSONObject);
                 }
                 case HttpConstants.METHOD_OPTIONS -> { //Return what methods are supported
-                    responseHeaders.set(HttpConstants.HEADER_ALLOW, HttpConstants.ALLOWED_METHODS);
-                    responseHeaders.set(HttpConstants.HEADER_ALLOW_ACCESS_CONTROL_ORIGIN, "*");
-                    exchange.sendResponseHeaders(HttpConstants.STATUS_OK, HttpConstants.NO_RESPONSE_LENGTH);
+                    ToolKit.sendMethodOptionsResponse(exchange);
                 }
                 default -> {
-                    responseHeaders.set(HttpConstants.HEADER_ALLOW, HttpConstants.ALLOWED_METHODS);
-                    responseHeaders.set(HttpConstants.HEADER_ALLOW_ACCESS_CONTROL_ORIGIN, "*");
-                    exchange.sendResponseHeaders(HttpConstants.STATUS_METHOD_NOT_ALLOWED, HttpConstants.NO_RESPONSE_LENGTH);
+                    ToolKit.sendDefaultResponse(exchange);
                 }
             }
         } catch (IOException | ParseException e) {

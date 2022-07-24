@@ -16,6 +16,7 @@ public class HttpConstants {
     //status codes 
     protected static final int STATUS_OK = 200; 
     protected static final int STATUS_CREATED = 201;
+    protected static final int STATUS_NO_CONTENT = 204;
     protected static final int STATUS_BAD_REQUEST = 400;
     protected static final int STATUS_UNAUTHORIZED = 401; //unauthenticated
     protected static final int STATUS_FORBIDDEN = 403; //authenticated but requesting someone elses data 
@@ -31,10 +32,11 @@ public class HttpConstants {
     protected static final String METHOD_POST = "POST";
     protected static final String METHOD_DELETE = "DELETE";
     protected static final String METHOD_OPTIONS = "OPTIONS";
-    protected static final String ALLOWED_METHODS = METHOD_GET + "," + METHOD_PUT + "," + METHOD_POST + "," + METHOD_DELETE + "," + METHOD_OPTIONS;
+    protected static final String ALLOWED_METHODS = METHOD_GET + ", " + METHOD_PUT + ", " + METHOD_POST + ", " + METHOD_DELETE + ", " + METHOD_OPTIONS;
     
     //headers 
-    protected static final String HEADER_ALLOW = "Allow";
+    protected static final String HEADER_ACCESS_CONTROL_ALLOW_METHODS = "Access-Control-Allow-Methods";
+    protected static final String HEADER_ACCESS_CONTROL_ALLOW_HEADERS = "Access-Control-Allow-Headers";
     protected static final String HEADER_CONTENT_TYPE = "Content-Type";
     protected static final String HEADER_ALLOW_ACCESS_CONTROL_ORIGIN = "Access-Control-Allow-Origin";
     
